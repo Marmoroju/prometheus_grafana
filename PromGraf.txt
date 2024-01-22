@@ -1,0 +1,49 @@
+###  PROMETHEUS ###
+
+O Prometheus ira recolher as metricas do target e gerar um datasource
+
+O datasource é gerado na porta 9100 (localhost:9100)
+
+O dashboard do prometheus e visualizado na porta 9090 e pode ser visualizado apos gerar um container
+-> docker container run -d -p 9090:9090 -v /vagrant/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus (subir um container para visualizar o dashboard do prometheus)
+
+No arquivo prometheus.yml a configuracao de targets que ira subir no container apontarapara o target onde esta em execução o node_exporter.
+
+prometheus.yml #Deve ser com .yml para quando subir o container substituir o arquivo padrao .yml
+
+prometheus.yml
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+scrape_configs:
+  - job_name: prometheus_node
+    static_configs:
+      - targets: ['192.168.56.8:9100']
+
+
+Sera preciso baixar o arquivo.tar.gz do node_exporter e descompactar no target
+-> https://prometheus.io/download/#node_exporter (Download)
+-> tar -xvf node_exporter-1.7.0.linux-amd64.tar.gz (Descompactar o arquivo)
+-> mv node_exporter-1.7.0.linux-amd64 /opt/ (Mover o arquivo descompactado para o /opt)
+-> cd /opt 
+-> cd node_exporter-1.7.0.linux-amd64/ 
+-> nohup ./node_exporter & (executar o node_exporter para exportar as metricas para a porta localhost:9100)
+(nohup para manter ele em execucao e liberar o terminal)
+
+### GRAFANA ###
+
+O Grafana ira recolher as metricas apos ser apontado para o datasource gerado pelo Prometheus e representa-lo num dashboard
+
+-> docker container run -d -p 3000:3000 --name grafana grafana/grafana
+-> acessar localhost:3000
+-> user:admin pwd:admin	
+
+Dashboard: Node Exporter Full
+-> git: https://github.com/rfmoz/grafana-dashboards/blob/master/prometheus/node-exporter-full.json
+-> prometheus -> node-exporter-full.json -> "copy raw file"
+
+No grafana:
+Dashboards -> + Create Dashboard -> Import a dashboard
+
+
