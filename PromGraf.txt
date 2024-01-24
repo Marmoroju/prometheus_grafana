@@ -47,3 +47,23 @@ No grafana:
 Dashboards -> + Create Dashboard -> Import a dashboard
 
 
+### PROMETHEUS NO WINDOWS ###
+-> https://github.com/prometheus-community/windows_exporter/releases/tag/v0.25.1
+-> realizar o download do windows_exporter*.msi e executar
+-> Executar o exporter do prometheus
+-> acessar as metricas no http://localhost:9182/ 
+-> acrescentar ao final do arquivo o job name e target no arquivo .yml
+  - job_name: "WMI Exporter"
+    static_configs:
+      - targets: ['localhost:9182']
+
+### CONFIGURANDO O DASHBOARD DO GRAFANA PARA O WINDOWS ###
+-> A configuração datasource sera do prometheus
+-> O local host do datasource sera o http://localhost:9090
+-> importar o dashboard 14510       
+
+
+### Link de referencia no youtube para configuracao no windows ###
+-> https://www.youtube.com/watch?v=iDlQFxyLL0Q
+
+
