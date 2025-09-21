@@ -2,6 +2,40 @@
 
 Este README detalha os passos para configurar o Prometheus e o Grafana para monitoramento de sistemas Linux (via Node Exporter) e Windows (via Windows Exporter). A configuração inclui a coleta de métricas, visualização em dashboards e a integração entre as ferramentas, fornecendo uma base sólida para a observabilidade da sua infraestrutura.
 
+Para garantir um ambiente de teste e desenvolvimento reproduzível para o monitoramento Linux, utilizaremos o Vagrant.
+
+## 0. Configuração do Ambiente com Vagrant (para o Target Linux)
+O Vagrant é uma ferramenta para construir e gerenciar ambientes de máquinas virtuais portáteis e reproduzíveis. Ele permite que você crie e configure máquinas virtuais de forma programática, garantindo que todos os membros da equipe trabalhem com o mesmo ambiente e eliminando o problema de "funciona na minha máquina".
+
+Acesse repositório - [Vagrant Install](https://github.com/Marmoroju/vagrant_env) - para realizar a instalação do `Vagrant` caso não o tenha instalado.
+
+###  0.1. Vagrantfile
+Crie um arquivo chamado Vagrantfile na raiz do seu projeto 
+
+Considerações para o Vagrantfile:
+
+- `config.vm.box`: A escolha da box depende do seu sistema operacional preferido. O CentOS 7 é uma escolha robusta e comum para servidores.
+- `private_network`: Essencial para garantir que a VM tenha um IP consistente e acessível pelo host, sem expor a VM à rede pública.
+- `provision`: Garante que a VM seja configurada de forma idêntica sempre que for criada ou provisionada, o que é fundamental para a reproducibilidade. Se você fizer alterações no provision.sh após a criação da VM, pode reexecutar o script com vagrant reload --provision ou vagrant provision.
+
+Considerações para o provision.sh:
+
+ - Idempotência: O script é projetado para ser idempotente, ou seja, executá-lo múltiplas vezes não causará efeitos colaterais indesejados. Isso é importante para vagrant provision.
+- Segurança: A criação de um usuário node_exporter sem shell (-rs /bin/false) e a atribuição de propriedade ao diretório do Node Exporter são práticas de segurança recomendadas para limitar o impacto de uma possível vulnerabilidade.
+ - systemd: O uso de um serviço systemd é o método padrão e mais robusto para gerenciar processos em sistemas Linux modernos, garantindo que o Node Exporter inicie corretamente e possa ser monitorado.
+ - Firewall: A configuração do firewall é crítica. Sem ela, o Prometheus não conseguirá se conectar à VM para coletar as métricas.
+
+### 0.2. provision.sh
+Crie um arquivo chamado provision.sh no mesmo diretório do Vagrantfile. Este script será executado automaticamente pelo Vagrant na primeira vez que a VM for iniciada (ou quando você usar vagrant provision). Ele é responsável por instalar e configurar o Node Exporter na VM CentOS.
+
+### 0.3. Inicialização da VM
+No diretório onde você salvou o Vagrantfile e provision.sh, execute:
+```bash
+vagrant up
+```
+
+Este comando irá baixar a imagem CentOS 7 (se ainda não tiver), criar a VM, configurar a rede e executar o provision.sh. Após a conclusão, seu Node Exporter estará rodando na VM com IP 192.168.56.8 e expondo métricas na porta 9100. Para verificar se o Node Exporter está funcionando, você pode tentar acessar `http://192.168.56.8:9100/metrics` do seu navegador no host. Você deve ver uma página com diversas métricas em formato Prometheus.
+
 ## 1. Prometheus
 
 O Prometheus é um sistema de monitoramento e alerta de código aberto que coleta métricas de alvos configurados em intervalos definidos, avalia regras de expressão, exibe os resultados e pode acionar alertas se certas condições forem observadas. Sua arquitetura pull-based o torna eficiente para coletar dados de diversas fontes.
